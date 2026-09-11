@@ -1,0 +1,43 @@
+# ---- Python / 后端 ----
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 权重文件（体积大，用 scripts/download_weights.py 拉取）
+backend/weights/*.pt
+backend/weights/*.onnx
+backend/weights/*.engine
+
+# 运行期数据
+backend/data/
+backend/runs/
+backend/uploads/
+backend/outputs/
+*.db
+*.sqlite3
+*.log
+
+# ---- Node / 前端 ----
+node_modules/
+frontend/dist/
+frontend/.vite/
+.npm/
+*.local
+.eslintcache
+
+# ---- 编辑器 / 系统 ----
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- 环境变量 ----
+.env
+.env.local
+!.env.example
