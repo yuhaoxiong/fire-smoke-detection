@@ -42,7 +42,7 @@ class VideoJob:
     error: str | None = None
     output_path: Path | None = None
     cancel: threading.Event = field(default_factory=threading.Event)
-    conf: float = 0.35
+    conf: float = 0.25
     iou: float = 0.45
     stride: int = 2
     max_frames: int = 0

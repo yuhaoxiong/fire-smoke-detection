@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     imgsz: int = 640
 
     # 检测阈值
-    conf_thres: float = 0.35
+    conf_thres: float = 0.25
     iou_thres: float = 0.45
 
     # 告警策略

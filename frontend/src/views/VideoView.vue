@@ -162,7 +162,7 @@ const job = ref(null)
 const jobs = ref([])
 const loadingJobs = ref(false)
 
-const conf = ref(0.4)
+const conf = ref(0.25)
 const iou = ref(0.45)
 const stride = ref(2)
 

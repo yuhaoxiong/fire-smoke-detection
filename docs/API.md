@@ -76,7 +76,7 @@
 ### `GET /api/config`
 ```json
 {
-  "conf_thres": 0.35,
+  "conf_thres": 0.25,
   "iou_thres": 0.45,
   "imgsz": 640,
   "device": "auto",

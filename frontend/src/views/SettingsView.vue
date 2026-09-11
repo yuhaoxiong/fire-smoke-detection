@@ -336,7 +336,7 @@ const clearMsg = ref('')
 const clearError = ref('')
 
 const form = reactive({
-  conf_thres: 0.35,
+  conf_thres: 0.25,
   iou_thres: 0.45,
   imgsz: 640,
   device: 'auto',
@@ -348,14 +348,14 @@ const form = reactive({
 })
 
 /** 后端返回的原始 config，用于计算差异与「还原」。 */
-let baseline = ''
+const baseline = ref('')
 
 const modelLoaded = computed(() => Boolean(model.value?.loaded) || Boolean(health.value?.model_loaded))
 const classes = computed(() => model.value?.classes || [])
 const available = computed(() => model.value?.available || [])
 const currentModel = computed(() => model.value?.name || '')
 
-const dirty = computed(() => serialize(form) !== baseline)
+const dirty = computed(() => serialize(form) !== baseline.value)
 const canSwitch = computed(() => Boolean(pickedModel.value) && pickedModel.value !== currentModel.value)
 
 const imgszOptions = computed(() => {
@@ -394,7 +394,7 @@ function applyConfig(cfg) {
   Object.keys(form).forEach((key) => {
     if (cfg[key] !== undefined && cfg[key] !== null) form[key] = cfg[key]
   })
-  baseline = serialize(form)
+  baseline.value = serialize(form)
 }
 
 async function loadAll() {
@@ -444,7 +444,7 @@ async function switchModel() {
 function buildPatch() {
   const patch = {}
   Object.keys(form).forEach((key) => {
-    const original = JSON.parse(baseline || '[]').find((pair) => pair[0] === key)
+    const original = JSON.parse(baseline.value || '[]').find((pair) => pair[0] === key)
     if (!original || original[1] !== form[key]) patch[key] = form[key]
   })
   return patch

@@ -156,7 +156,7 @@ const annotatedSrc = ref('')
 
 const deviceId = ref('')
 const cameras = ref([])
-const conf = ref(0.4)
+const conf = ref(0.25)
 const iou = ref(0.45)
 const quality = ref(0.7)
 

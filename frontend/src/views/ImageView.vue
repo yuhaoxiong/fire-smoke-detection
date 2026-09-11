@@ -155,7 +155,7 @@ const loading = ref(false)
 const error = ref('')
 const result = ref(null)
 
-const conf = ref(0.35)
+const conf = ref(0.25)
 const iou = ref(0.45)
 const returnImage = ref(true)
 
