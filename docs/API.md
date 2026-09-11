@@ -61,6 +61,13 @@
 ### `POST /api/model/switch`
 请求体：`{ "name": "fire-smoke-yolov8s" }`
 响应：同 `GET /api/model` 的结构（已切换后的模型信息）。
+- 模型不存在 → `404`；权重文件缺失 → `409`。
+
+### `GET /api/detect-id`
+可选工具接口：返回一个 12 位十六进制随机 id（前端可在上传前标记本次会话）。
+```json
+{ "id": "169d146cb210" }
+```
 
 ---
 
@@ -314,3 +321,26 @@
 前端启动后应先请求 `GET /api/health` 与 `GET /api/model`；若失败，
 在界面上展示「后端未连接」提示，并给出启动命令
 `python -m uvicorn app.main:app --host 127.0.0.1 --port 8000`。
+
+后端自带端到端自检脚本，逐条核对本契约（含 WebSocket 通道）：
+
+```bash
+cd backend
+../.venv/Scripts/python.exe scripts/selftest.py --image /path/to/fire.jpg --frames 3
+```
+
+- 不带 `--image` 时只检查 HTTP 接口结构；
+- 带 `--image` 时额外校验 `xyxy`（像素）/`xyxyn`（归一化 0~1）坐标契约、
+  `image/raw` 的 JPEG 魔数，以及 `WS /ws/detect` 的 `ready` / `result` /
+  `ping→pong` / `config` 控制消息；
+- 退出码 `0` 表示全部通过。
+
+可以用 `--base http://127.0.0.1:5173` 把同一套检查跑在 Vite 代理上，
+用于验证 `vite.config.js` 的 `/api`、`/static`、`/ws` 代理是否配置正确。
+
+前端另有模板绑定自检（弥补 `vite build` 不检查模板标识符的盲区）：
+
+```bash
+cd frontend
+npm run check:bindings   # 已内置在 npm run build 中
+```

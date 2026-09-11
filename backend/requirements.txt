@@ -1,0 +1,36 @@
+# ============================================================
+#  火灾烟雾智能识别系统 —— 后端依赖
+# ============================================================
+#  【重要】PyTorch 建议单独安装，以匹配你的 CUDA 版本：
+#
+#    GPU（NVIDIA，推荐，本机 RTX 4070 实测可用）：
+#      pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+#
+#    CPU（无独显 / 不想装 CUDA）：
+#      pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#
+#  装好 torch 后再执行： pip install -r requirements.txt
+#  （下面的 ultralytics 会自动使用已安装的 torch，不会重复下载）
+# ============================================================
+
+# --- Web 框架 ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+python-multipart>=0.0.12
+websockets>=13.0
+
+# --- 配置与校验 ---
+pydantic>=2.9.0
+pydantic-settings>=2.6.0
+
+# --- 推理与图像 ---
+ultralytics>=8.3.0
+numpy>=1.26.0
+opencv-python>=4.10.0
+Pillow>=10.4.0
+
+# --- 权重反序列化 ---
+# 部分公开 fire/smoke 权重（如 luminous0219 / Eemrkcgl 的 best.pt）由旧版
+# ultralytics 保存，需要 dill 才能反序列化；缺少时 ultralytics 会尝试联网
+# 自动安装并给出警告，这里显式固定，保证离线环境也能加载。
+dill>=0.3.8

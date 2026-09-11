@@ -1,0 +1,22 @@
+{
+  "name": "fire-smoke-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "火灾烟雾智能识别系统 · 前端（Vue3 + Vite，浅色科技风）",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/check-bindings.mjs",
+    "build:only": "vite build",
+    "check:bindings": "node scripts/check-bindings.mjs",
+    "preview": "vite preview --port 4173"
+  },
+  "dependencies": {
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.0",
+    "vite": "^6.0.0"
+  }
+}
