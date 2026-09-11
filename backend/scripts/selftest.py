@@ -176,7 +176,7 @@ async def check_ws(base_ws: str, image: Path | None, frames: int) -> None:
     import websockets
 
     section("5. 实时 WebSocket WS /ws/detect")
-    url = f"{base_ws}/ws/detect?conf=0.35&iou=0.45&annotated=false"
+    url = f"{base_ws}/ws/detect?conf=0.25&iou=0.45&annotated=false"
     try:
         async with websockets.connect(url, max_size=32 * 1024 * 1024, open_timeout=20) as ws:
             ready = json.loads(await asyncio.wait_for(ws.recv(), timeout=30))

@@ -158,12 +158,12 @@
 ## 4. 实时摄像头（WebSocket）
 
 ### `WS /ws/detect`
-连接示例：`ws://127.0.0.1:8000/ws/detect?conf=0.4&iou=0.45&annotated=false`
+连接示例：`ws://127.0.0.1:8000/ws/detect?conf=0.25&iou=0.45&annotated=false`
 
 **客户端 → 服务端**
 - 二进制帧（JPEG / PNG 字节）：待检测画面。
 - 文本 JSON 控制消息：
-  - `{ "type": "config", "conf": 0.4, "iou": 0.5, "annotated": true }`
+  - `{ "type": "config", "conf": 0.25, "iou": 0.5, "annotated": true }`
   - `{ "type": "ping" }` → 服务端回 `{ "type": "pong" }`
   - `{ "type": "reset" }` → 重置本次会话的告警连击计数
 
@@ -175,7 +175,7 @@
   "type": "ready",
   "session_id": "ws_ab12cd34",
   "model": { "name": "fire-smoke-yolov8n", "classes": [ ... ] },
-  "config": { "conf": 0.4, "iou": 0.45, "annotated": false }
+  "config": { "conf": 0.25, "iou": 0.45, "annotated": false }
 }
 ```
 
