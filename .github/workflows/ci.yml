@@ -1,0 +1,128 @@
+name: CI
+
+# 每次 push / PR 都跑一遍：前端能构建、后端契约端到端可用。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# 只需要读代码，最小权限
+permissions:
+  contents: read
+
+# 同一分支连续提交时，取消上一次还在跑的流水线
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ------------------------------------------------------------------
+  # 前端：依赖只有 vue / vue-router / vite / @vitejs/plugin-vue
+  # ------------------------------------------------------------------
+  frontend:
+    name: 前端 · 构建与模板自检
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 安装依赖（npm ci）
+        working-directory: frontend
+        run: npm ci
+
+      # 等价于 vite build + node scripts/check-bindings.mjs
+      - name: 构建 + 模板绑定自检
+        working-directory: frontend
+        run: npm run build
+
+  # ------------------------------------------------------------------
+  # 后端：装 CPU 版 torch → 下权重 → 起 uvicorn → 跑端到端自检
+  # ------------------------------------------------------------------
+  backend:
+    name: 后端 · 契约端到端自检
+    runs-on: ubuntu-latest
+    env:
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      # opencv-python 在无桌面的 runner 上需要 libGL / libglib
+      - name: 安装 OpenCV 运行库
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0
+
+      - name: 安装依赖（CPU 版 PyTorch + 开发依赖）
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements-dev.txt
+
+      - name: 下载 YOLOv8 权重并校验类别
+        working-directory: backend
+        run: python scripts/download_weights.py --model fire-smoke-yolov8n --verify
+
+      # 权重不入库，也不在 CI 里放真实素材；用合成图验证链路即可
+      - name: 生成合成测试图
+        working-directory: backend
+        run: python scripts/make_test_image.py --out "$RUNNER_TEMP/synthetic.jpg"
+
+      - name: 启动后端并等待就绪
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 \
+            > "$RUNNER_TEMP/uvicorn.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/uvicorn.pid"
+
+          for i in $(seq 1 90); do
+            if curl -sf http://127.0.0.1:8000/api/health \
+                 | grep -Eq '"model_loaded":[[:space:]]*true'; then
+              echo "后端就绪（第 ${i} 次探测）"
+              curl -s http://127.0.0.1:8000/api/health; echo
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "::error::后端在 180 秒内未就绪（模型可能加载失败）"
+          tail -60 "$RUNNER_TEMP/uvicorn.log" || true
+          exit 1
+
+      # 27 项契约检查：health/model/config、事件与统计、图片与 raw、
+      # 坐标合法性、WS ready/result/ping-pong/config
+      - name: 端到端契约自检
+        working-directory: backend
+        run: |
+          python scripts/selftest.py \
+            --base http://127.0.0.1:8000 \
+            --image "$RUNNER_TEMP/synthetic.jpg" \
+            --frames 3
+
+      - name: 后端日志（失败时）
+        if: failure()
+        run: tail -100 "$RUNNER_TEMP/uvicorn.log" || true
+
+      - name: 停止后端
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/uvicorn.pid" ]; then
+            kill "$(cat "$RUNNER_TEMP/uvicorn.pid")" 2>/dev/null || true
+          fi

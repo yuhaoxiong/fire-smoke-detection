@@ -16,6 +16,7 @@ backend/weights/*.engine
 # 运行期数据
 backend/data/
 backend/runs/
+backend/testdata/
 backend/uploads/
 backend/outputs/
 *.db

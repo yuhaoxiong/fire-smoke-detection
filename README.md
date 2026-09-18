@@ -1,5 +1,7 @@
 # 火灾烟雾智能识别系统
 
+[![CI](https://github.com/yuhaoxiong/fire-smoke-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/yuhaoxiong/fire-smoke-detection/actions/workflows/ci.yml)
+
 基于 **YOLOv8 + FastAPI + Vue3** 的火焰/烟雾识别系统：支持**摄像头实时检测**、**图片上传检测**、
 **视频文件检测**，并提供检测历史、告警统计与运行参数管理。前端为纯手写的**浅色科技风**界面
 （白底 + 细描边 + 蓝色强调，无任何 UI 组件库、图表全部用 SVG/CSS 手写）。
@@ -187,6 +189,8 @@ WS     /ws/detect
 
 ```bash
 cd backend
+# 自检脚本额外依赖 httpx（仅开发/CI 需要，部署后端服务不需要）
+../.venv/Scripts/python.exe -m pip install -r requirements-dev.txt
 ../.venv/Scripts/python.exe scripts/selftest.py --image /path/to/fire.jpg --frames 3
 ```
 
@@ -218,6 +222,16 @@ npm run build      # vite build + node scripts/check-bindings.mjs
 | 单帧推理 | 18~50 ms（含前后处理），`/api/detect/image/raw` 返回 JPEG |
 | 实时 WS | 连续 3 帧命中 → `alarm.strikes` 1→2→3，第 3 帧转为 `critical` |
 | 视频任务 | 40 帧视频 → `done`，产出标注 MP4 可从 `/static/videos/...` 播放，自动生成 1 条 `video` 来源告警 |
+
+**持续集成（GitHub Actions）**：`.github/workflows/ci.yml` 在每次 push / PR 时并行跑两个任务：
+
+- **前端**：`npm ci` → `npm run build`（`vite build` + `check-bindings.mjs` 模板绑定自检）。
+- **后端**：装 CPU 版 PyTorch → `download_weights.py --verify` 拉权重并校验 `fire` 类别 →
+  起 `uvicorn` → 跑 `scripts/selftest.py` 做端到端契约核对。
+
+CI 里没有真实素材，用 `scripts/make_test_image.py` 生成**合成图**跑通
+「上传 → 推理 → 坐标契约 → JPEG 回传」链路。它只验证**契约与流程**，
+检出数通常为 0（`selftest.py` 明确允许 `counts.total == 0`），**不验证模型精度**。
 
 ---
 
